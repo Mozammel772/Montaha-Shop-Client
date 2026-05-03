@@ -1,4 +1,6 @@
+import CategorySection from "@/components/modules/HomePages/CategorySection";
 import HeroBanner from "@/components/modules/HomePages/HeroBanner";
+import TrendingProducts from "@/components/modules/HomePages/TrendingProducts";
 import Head from "next/head";
 
 export default function page() {
@@ -12,6 +14,8 @@ export default function page() {
       </Head>
       <main>
         <HeroBanner />
+        <CategorySection />
+        <TrendingProducts />
       </main>
     </>
   );
