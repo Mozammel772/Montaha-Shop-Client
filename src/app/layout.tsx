@@ -1,4 +1,5 @@
 import LoginSuccessToast from "@/components/shared/LoginSuccessToast";
+import Providers from "@/providers/Providers";
 import type { Metadata } from "next";
 import { Open_Sans, Poppins } from "next/font/google";
 import { Suspense } from "react";
@@ -106,7 +107,7 @@ export default function RootLayout({
       className={`${openSans.variable} ${poppins.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        {children}
+        <Providers> {children}</Providers>
 
         <Toaster position="top-right" richColors />
 

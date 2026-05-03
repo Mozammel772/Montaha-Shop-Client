@@ -6,7 +6,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Heart, Search, ShoppingBag, User } from "lucide-react";
+import { Heart, Search, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,11 +14,14 @@ import { useState } from "react";
 import logo from "@/assets/icons/theme-logo.png";
 
 import { navbarCategoryData } from "@/lib/navbarData";
+import dynamic from "next/dynamic";
 import AuthDropdown from "./AuthDropdown";
 import MobileBottomNav from "./MobileBottomNav";
 import MobileMenuDrawer from "./MobileMenuDrawer";
 import MobileTopNavbar from "./MobileTopNavbar";
-
+const CartButton = dynamic(() => import("../CartButton"), {
+  ssr: false,
+});
 export default function PublicNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] =
@@ -146,13 +149,7 @@ export default function PublicNavbar() {
                 3
               </span>
             </Link>
-
-            <Link href="/cart" className="relative">
-              <ShoppingBag className="h-6 w-6" />
-              <span className="absolute -top-1 -right-1 text-[10px] bg-orange-500 text-white rounded-full px-1">
-                2
-              </span>
-            </Link>
+            <CartButton />
 
             <div
               className="relative"
