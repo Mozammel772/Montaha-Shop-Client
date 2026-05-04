@@ -121,7 +121,7 @@
 
 //   return (
 //     <section className="w-full bg-[#eef0f3] py-8 overflow-hidden">
-//       <div className="max-w-[1600px] mx-auto">
+//       <div className="max-w-[1400px] mx-auto">
 //         {/* SLIDER */}
 //         <div
 //           ref={sliderRef}
@@ -303,7 +303,7 @@ const CategorySection = () => {
 
   return (
     <section className="w-full bg-[#eef0f3] py-6 md:py-8 overflow-hidden">
-      <div className="max-w-[1600px] mx-auto">
+      <div className="max-w-[1400px] mx-auto">
         <div
           ref={sliderRef}
           onMouseDown={handleMouseDown}

@@ -38,7 +38,7 @@ const HeroBanner = () => {
 
   return (
     <section className="w-full bg-[#F1F5F9] py-6 px-2">
-      <div className="max-w-[1600px] mx-auto">
+      <div className="max-w-[1400px] mx-auto">
         {/* MAIN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* ================= MAIN SLIDER ================= */}

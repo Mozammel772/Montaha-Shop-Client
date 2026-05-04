@@ -8,20 +8,20 @@ import Link from "next/link";
 interface Props {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  variant?: "desktop" | "mobile";
 }
 
-export default function CartDrawer({
-  open,
-  setOpen,
-  variant = "desktop",
-}: Props) {
-  const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal } =
-    useCart();
+export default function CartDrawer({ open, setOpen }: Props) {
+  const {
+    cartItems,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    getCartTotal,
+    getCartCount,
+  } = useCart();
 
   const totalPrice = getCartTotal();
-
-  const isMobile = variant === "mobile";
+  const totalItems = getCartCount();
 
   return (
     <>
@@ -29,147 +29,123 @@ export default function CartDrawer({
       <div
         onClick={() => setOpen(false)}
         className={`fixed inset-0 bg-black/50 z-[9998] transition-all duration-300 ${
-          open ? "opacity-100 visible" : "opacity-0 invisible"
+          open ? "opacity-100 visible " : "opacity-0 invisible "
         }`}
       />
 
       {/* DRAWER */}
       <div
-        className={`fixed top-0 right-0 h-[100dvh]
-        ${isMobile ? "w-full sm:w-[360px]" : "w-full sm:w-[430px]"}
-        bg-white z-[9999]
-        transition-transform duration-300 ease-out
-        flex flex-col
-        ${open ? "translate-x-0" : "translate-x-full"}
-      `}
+        className={`fixed top-0 right-0 z-[9999] h-screen w-full sm:w-[420px] bg-white flex flex-col transition-all duration-300 ${
+          open ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         {/* HEADER */}
-        <div className="h-[70px] border-b px-4 sm:px-5 flex items-center justify-between shrink-0 bg-white">
-          <div className="flex items-center gap-3">
-            <ShoppingBag
-              className={`w-6 h-6 ${
-                isMobile ? "text-orange-500" : "text-[#0f3ea9]"
-              }`}
-            />
+        <div className="h-[72px] border-b border-gray-200 px-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="w-6 h-6 text-[#0f3ea9]" />
 
-            <h2 className="text-[18px] sm:text-[22px] font-bold text-gray-800">
+            <h2 className="text-[24px] font-bold text-gray-800">
               Shopping Cart
             </h2>
 
-            <span
-              className={`text-white text-[12px] font-semibold px-2 py-1 rounded-full ${
-                isMobile ? "bg-orange-500" : "bg-[#0f3ea9]"
-              }`}
-            >
-              {cartItems?.length ?? 0}
+            <span className="text-gray-500 font-medium text-[18px]">
+              ({totalItems})
             </span>
           </div>
 
           <button
             onClick={() => setOpen(false)}
-            className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-all"
+            className="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center transition-all"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-gray-700" />
           </button>
         </div>
 
-        {/* EMPTY CART */}
+        {/* EMPTY */}
         {cartItems.length === 0 && (
-          <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+          <div className="flex-1 flex flex-col items-center justify-center">
             <ShoppingBag className="w-16 h-16 text-gray-300" />
 
-            <h3 className="text-[20px] font-bold mt-5">Your Cart is Empty</h3>
+            <h3 className="text-[22px] font-bold mt-4">Your cart is empty</h3>
 
-            <p className="text-gray-500 mt-2">
-              Looks like you haven’t added anything yet.
+            <p className="text-gray-500 mt-2 text-sm">
+              Add products to your shopping cart.
             </p>
           </div>
         )}
 
-        {/* CART ITEMS */}
+        {/* ITEMS */}
         {cartItems.length > 0 && (
           <>
-            <div
-              className={`flex-1 overflow-y-auto px-4 py-4 pb-32 space-y-4 ${
-                isMobile ? "bg-gray-50" : ""
-              }`}
-            >
+            <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 bg-[#fafafa]">
               {cartItems.map((item, index) => (
                 <div
                   key={`${item.id}-${index}`}
-                  className="border border-gray-200 rounded-2xl p-3 flex gap-3 hover:shadow-md transition-all bg-white"
+                  className="bg-white border border-gray-200 rounded-xl p-3 flex gap-3"
                 >
                   {/* IMAGE */}
-                  <div className="relative w-[80px] sm:w-[90px] h-[80px] sm:h-[90px] rounded-xl overflow-hidden border border-gray-100 shrink-0 bg-gray-50">
+                  <div className="relative w-[70px] h-[70px] rounded-lg overflow-hidden border shrink-0 bg-gray-50">
                     <Image
                       src={item.image}
                       alt={item.title}
                       fill
+                      sizes="100px"
                       className="object-cover"
                     />
                   </div>
 
                   {/* INFO */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-[13px] sm:text-[14px] font-semibold text-gray-800 line-clamp-2 leading-[22px]">
-                      {item.title}
-                    </h3>
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-[14px] font-medium text-gray-800 line-clamp-2 leading-[20px]">
+                        {item.shortTitle || item.title}
+                      </h3>
 
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {item.selectedColor && (
-                        <span className="text-[11px] sm:text-[12px] text-gray-500">
-                          Color: {item.selectedColor}
-                        </span>
-                      )}
-
-                      {item.selectedSize && (
-                        <span className="text-[11px] sm:text-[12px] text-gray-500">
-                          Size: {item.selectedSize}
-                        </span>
-                      )}
+                      <p className="text-[20px] font-bold text-gray-900 whitespace-nowrap">
+                        ৳{(item.price * item.quantity).toLocaleString()}
+                      </p>
                     </div>
 
-                    <p
-                      className={`text-[18px] sm:text-[20px] font-bold mt-2 ${
-                        isMobile ? "text-orange-500" : "text-[#0f3ea9]"
-                      }`}
-                    >
-                      ৳{(item.price * item.quantity).toLocaleString()}
-                    </p>
+                    {/* COLOR */}
+                    {item.selectedColor && (
+                      <p className="text-[12px] text-gray-500 mt-1">
+                        Color: {item.selectedColor}
+                      </p>
+                    )}
 
                     {/* ACTIONS */}
-                    <div className="flex items-center justify-between mt-3 gap-2">
+                    <div className="flex items-center justify-between mt-3">
                       {/* QUANTITY */}
-                      <div className="flex items-center border border-gray-200 rounded-full overflow-hidden shrink-0">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() =>
                             updateQuantity(index, item.quantity - 1)
                           }
-                          className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                          className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-all"
                         >
-                          <Minus className="w-4 h-4" />
+                          <Minus className="w-3 h-3" />
                         </button>
 
-                        <div className="w-10 text-center font-bold text-sm">
+                        <span className="text-sm font-semibold min-w-[14px] text-center">
                           {item.quantity}
-                        </div>
+                        </span>
 
                         <button
                           onClick={() =>
                             updateQuantity(index, item.quantity + 1)
                           }
-                          className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                          className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-all"
                         >
-                          <Plus className="w-4 h-4" />
+                          <Plus className="w-3 h-3" />
                         </button>
                       </div>
 
                       {/* DELETE */}
                       <button
                         onClick={() => removeFromCart(index)}
-                        className="w-9 h-9 rounded-full hover:bg-red-50 flex items-center justify-center shrink-0 transition-colors"
+                        className="text-red-500 hover:text-red-600 transition-all"
                       >
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -178,45 +154,30 @@ export default function CartDrawer({
             </div>
 
             {/* FOOTER */}
-            <div
-              className={`border-t bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+12px)] shrink-0 ${
-                isMobile ? "shadow-lg" : ""
-              }`}
-            >
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-[18px] sm:text-[20px] font-bold text-gray-800">
-                  Total
-                </h3>
+            <div className="border-t  bg-white p-4 rounded-t-4xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+              {/* TOTAL */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[22px] font-bold text-gray-800">Total:</h3>
 
-                <h2
-                  className={`text-[24px] sm:text-[28px] font-bold ${
-                    isMobile ? "text-orange-500" : "text-[#0f3ea9]"
-                  }`}
-                >
+                <h2 className="text-[32px] font-bold text-[#0f3ea9]">
                   ৳{totalPrice.toLocaleString()}
                 </h2>
               </div>
 
-              <div className="space-y-3">
-                <Link href="/checkout">
-                  <button
-                    className={`w-full h-[52px] sm:h-[56px] rounded-xl text-white font-semibold transition-all shadow-md ${
-                      isMobile
-                        ? "bg-orange-500 hover:bg-orange-600"
-                        : "bg-[#0f3ea9] hover:bg-[#0b2f80]"
-                    }`}
-                  >
-                    Proceed To Checkout
-                  </button>
-                </Link>
-
-                <button
-                  onClick={clearCart}
-                  className="w-full h-[50px] sm:h-[52px] rounded-xl border border-red-200 text-red-500 font-semibold hover:bg-red-50 transition-all"
-                >
-                  Clear Cart
+              {/* CHECKOUT */}
+              <Link href="/checkout">
+                <button className="w-full h-[52px] rounded-xl bg-[#0f3ea9] hover:bg-[#0b2f80] text-white font-semibold transition-all shadow-lg">
+                  Proceed to Checkout
                 </button>
-              </div>
+              </Link>
+
+              {/* CLEAR */}
+              <button
+                onClick={clearCart}
+                className="w-full mt-3 h-[50px] rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition-all shadow-sm"
+              >
+                Clear Cart
+              </button>
             </div>
           </>
         )}

@@ -32,7 +32,7 @@ export default function PublicNavbar() {
   return (
     <>
       <header className="w-full bg-background shadow-sm hidden sm:block">
-        <div className="max-w-[1600px] mx-auto px-2 h-18 flex items-center gap-5 ">
+        <div className="max-w-[1400px] mx-auto px-2 h-18 flex items-center gap-5 ">
           {/* Logo */}
           <Link href="/" className="shrink-0">
             <div className="relative h-10 w-[120px]">

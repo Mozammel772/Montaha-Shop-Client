@@ -12,7 +12,7 @@
 // const TrendingProducts = () => {
 //   return (
 //     <section className="w-full bg-[#f4f6f9] py-5 md:py-8 px-2 md:px-4">
-//       <div className="max-w-[1600px] mx-auto">
+//       <div className="max-w-[1400px] mx-auto">
 //         {/* MAIN CARD */}
 //         <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm">
 //           {/* HEADER */}
@@ -172,7 +172,7 @@ const TrendingProducts = () => {
 
   return (
     <section className="w-full bg-[#f4f6f9] py-5 md:py-8 px-2 md:px-4">
-      <div className="max-w-[1600px] mx-auto">
+      <div className="max-w-[1400px] mx-auto">
         {/* MAIN CARD */}
         <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm">
           {/* HEADER */}
