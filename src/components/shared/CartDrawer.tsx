@@ -165,12 +165,13 @@ export default function CartDrawer({ open, setOpen }: Props) {
               </div>
 
               {/* CHECKOUT */}
-              <Link href="/checkout">
-                <button className="w-full h-[52px] rounded-xl bg-[#0f3ea9] hover:bg-[#0b2f80] text-white font-semibold transition-all shadow-lg">
-                  Proceed to Checkout
-                </button>
+              <Link
+                href="/checkout"
+                onClick={() => setOpen(false)}
+                className="w-full h-[52px] flex items-center justify-center rounded-xl bg-[#0f3ea9] hover:bg-[#0b2f80] text-white font-semibold transition-all shadow-lg"
+              >
+                Proceed to Checkout
               </Link>
-
               {/* CLEAR */}
               <button
                 onClick={clearCart}
