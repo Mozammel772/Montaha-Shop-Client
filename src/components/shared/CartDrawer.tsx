@@ -97,7 +97,7 @@ export default function CartDrawer({ open, setOpen }: Props) {
                   {/* INFO */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-[14px] font-medium text-gray-800 line-clamp-2 leading-[20px]">
+                      <h3 className="text-[14px] font-medium text-gray-800 line-clamp-2">
                         {item.shortTitle || item.title}
                       </h3>
 
@@ -107,11 +107,22 @@ export default function CartDrawer({ open, setOpen }: Props) {
                     </div>
 
                     {/* COLOR */}
-                    {item.selectedColor && (
-                      <p className="text-[12px] text-gray-500 mt-1">
-                        Color: {item.selectedColor}
-                      </p>
-                    )}
+                    {/* VARIANTS (COLOR + SIZE) */}
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      {/* COLOR */}
+                      {item.selectedColor && (
+                        <span className="text-[11px] px-2 py-[2px] rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                          Color:{item.selectedColor}
+                        </span>
+                      )}
+
+                      {/* SIZE */}
+                      {item.selectedSize && (
+                        <span className="text-[11px] px-2 py-[2px] rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+                          Size: {item.selectedSize}
+                        </span>
+                      )}
+                    </div>
 
                     {/* ACTIONS */}
                     <div className="flex items-center justify-between mt-3">

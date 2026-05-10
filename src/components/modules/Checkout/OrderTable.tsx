@@ -3,6 +3,7 @@
 import { useCart } from "@/hooks/useCart";
 import { Minus, Plus } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function OrderTable() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
@@ -32,17 +33,44 @@ export default function OrderTable() {
             {/* ✅ DESKTOP ROW */}
             <div className="hidden md:grid grid-cols-12 items-center px-5 py-4 text-sm">
               <div className="col-span-6 flex gap-3 items-center">
-                <div className="w-14 h-14 relative border rounded-md overflow-hidden">
+                {/* <div className="w-14 h-14 relative border rounded-md overflow-hidden">
                   <Image
                     src={item.image}
                     alt={item.title}
                     fill
                     className="object-cover"
                   />
-                </div>
+                </div> */}
+                <Link href={`/trending-products/${item.slug}`}>
+                  <div className="w-14 h-14 relative border rounded-md overflow-hidden cursor-pointer">
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      className="object-cover hover:scale-105 transition-all"
+                    />
+                  </div>
+                </Link>
 
                 <div>
-                  <p className="font-medium">{item.title}</p>
+                  <h3 className="text-[14px] font-medium text-gray-800 line-clamp-2">
+                    {item.title}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    {/* COLOR */}
+                    {item.selectedColor && (
+                      <span className="text-[11px] px-2 py-[2px] rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                        Color:{item.selectedColor}
+                      </span>
+                    )}
+
+                    {/* SIZE */}
+                    {item.selectedSize && (
+                      <span className="text-[11px] px-2 py-[2px] rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+                        Size: {item.selectedSize}
+                      </span>
+                    )}
+                  </div>
                   <button
                     onClick={() => removeFromCart(index)}
                     className="text-red-500 text-xs mt-1 hover:underline"
@@ -88,22 +116,45 @@ export default function OrderTable() {
             {/* ✅ MOBILE CARD (image মতো) */}
             <div className="md:hidden p-4 flex gap-3">
               {/* IMAGE */}
-              <div className="w-[60px] h-[60px] relative border rounded-md overflow-hidden shrink-0">
+              {/* <div className="w-[60px] h-[60px] relative border rounded-md overflow-hidden shrink-0">
                 <Image
                   src={item.image}
                   alt={item.title}
                   fill
                   className="object-cover"
                 />
-              </div>
-
+              </div> */}
+              <Link href={`/trending-products/${item.slug}`}>
+                <div className="w-[60px] h-[60px] relative border rounded-md overflow-hidden shrink-0 cursor-pointer">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    className="object-cover hover:scale-105 transition-all"
+                  />
+                </div>
+              </Link>
               {/* CONTENT */}
               <div className="flex-1">
                 {/* TITLE */}
                 <p className="text-[14px] font-medium text-gray-800 line-clamp-2">
                   {item.title}
                 </p>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  {/* COLOR */}
+                  {item.selectedColor && (
+                    <span className="text-[11px] px-2 py-[2px] rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                      Color:{item.selectedColor}
+                    </span>
+                  )}
 
+                  {/* SIZE */}
+                  {item.selectedSize && (
+                    <span className="text-[11px] px-2 py-[2px] rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+                      Size: {item.selectedSize}
+                    </span>
+                  )}
+                </div>
                 {/* REMOVE */}
                 <button
                   onClick={() => removeFromCart(index)}

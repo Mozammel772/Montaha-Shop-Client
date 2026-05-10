@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -9,8 +10,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { loginUser } from "@/services/auth/loginUser";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import InputFieldError from "./shared/InputFieldError";
@@ -23,32 +25,36 @@ export function LoginForm({
   redirect?: string;
 } & React.ComponentProps<"div">) {
   const [showPassword, setShowPassword] = useState(false);
-  const [resetKey, setResetKey] = useState(0);
+
   const [state, formAction, isPending] = useActionState(loginUser, null);
 
-  // ✅ inputs
+  const errorResetKey = JSON.stringify(state);
+
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
   const [isResetting, startTransition] = useTransition();
+  const router = useRouter();
 
   useEffect(() => {
     if (!state) return;
 
     if (!state.success && state.message) {
       toast.error(state.message);
+      return;
     }
 
-    if (state.success) {
+    const handleSuccess = async () => {
+      if (!state.success) return;
+
       toast.success(state.message || "Login successful");
 
-      startTransition(() => {
-        setPhone("");
-        setPassword("");
-        setResetKey((p) => p + 1);
-      });
-    }
-  }, [state]);
+      window.dispatchEvent(new Event("userChanged"));
+      window.location.href = state.redirectTo || "/";
+    };
+
+    handleSuccess();
+  }, [state, router]);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -61,19 +67,17 @@ export function LoginForm({
             <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
 
             <div className="flex">
-              {/* +880 prefix */}
               <div className="flex items-center px-2 border border-r-0 rounded-l-md bg-gray-100 text-gray-600">
                 +880
               </div>
 
-              {/* input */}
               <Input
                 id="phone"
                 type="text"
                 placeholder="01XXXXXXXXX"
                 className="rounded-l-none"
                 value={phone}
-                autoComplete="phone"
+                autoComplete="tel"
                 maxLength={10}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, "");
@@ -82,13 +86,12 @@ export function LoginForm({
               />
             </div>
 
-            {/* hidden full phone */}
             <input type="hidden" name="phone" value={`+880${phone}`} />
 
             <InputFieldError
               field="phone"
               state={state}
-              key={`phone-${resetKey}`}
+              key={`phone-${errorResetKey}`}
             />
           </Field>
 
@@ -97,30 +100,32 @@ export function LoginForm({
             <FieldLabel htmlFor="password">Password</FieldLabel>
 
             <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Lock size={16} />
+              </span>
               <Input
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="******"
-                className="pr-10"
-                autoComplete="password"
+                className="pl-9 pr-10"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
             <InputFieldError
               field="password"
               state={state}
-              key={`password-${resetKey}`}
+              key={`password-${errorResetKey}`}
             />
           </Field>
 
