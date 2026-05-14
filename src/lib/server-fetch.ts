@@ -13,7 +13,7 @@ const serverFetchHelper = async (
   const accessToken = await getCookie("accessToken");
 
   //to stop recursion loop
-  if (endpoint !== "/auth/refresh-token") {
+  if (!accessToken && endpoint !== "/auth/refresh-token") {
     await getNewAccessToken();
   }
 

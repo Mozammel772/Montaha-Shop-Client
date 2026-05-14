@@ -1,3 +1,4 @@
+import { AuthGuard } from "@/components/AuthGuard";
 import LoginSuccessToast from "@/components/shared/LoginSuccessToast";
 import Providers from "@/providers/Providers";
 import type { Metadata } from "next";
@@ -93,14 +94,17 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${dmSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="min-h-full flex flex-col font-sans pb-16 md:pb-0">
         <NextTopLoader
           color="#f97316"
           height={3}
           showSpinner={false}
           shadow="0 0 10px #f97316"
         />
-        <Providers>{children}</Providers>
+        <Providers>
+          <AuthGuard />
+          {children}
+        </Providers>
 
         <Toaster position="top-right" richColors />
 

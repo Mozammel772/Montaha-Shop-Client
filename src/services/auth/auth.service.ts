@@ -1,6 +1,5 @@
 "use server";
 
-import { verifyAccessToken } from "@/lib/jwtHanlders";
 import { serverFetch } from "@/lib/server-fetch";
 import { parse } from "cookie";
 import { revalidateTag } from "next/cache";
@@ -29,7 +28,7 @@ export async function updateMyProfile(formData: FormData) {
       uploadFormData.append("file", file);
     }
 
-    const response = await serverFetch.patch(`/user/update-my-profile`, {
+    const response = await serverFetch.patch(`/user/me`, {
       body: uploadFormData,
     });
 
@@ -48,45 +47,140 @@ export async function updateMyProfile(formData: FormData) {
   }
 }
 
+// export async function getNewAccessToken() {
+//   try {
+//     const accessToken = await getCookie("accessToken");
+//     const refreshToken = await getCookie("refreshToken");
+
+//     //Case 1: Both tokens are missing - user is logged out
+//     if (!accessToken && !refreshToken) {
+//       return {
+//         tokenRefreshed: false,
+//       };
+//     }
+
+//     // Case 2 : Access Token exist- and need to verify
+//     if (accessToken) {
+//       const verifiedToken = await verifyAccessToken(accessToken);
+
+//       if (verifiedToken.success) {
+//         return {
+//           tokenRefreshed: false,
+//         };
+//       }
+//     }
+
+//     //Case 3 : refresh Token is missing- user is logged out
+//     if (!refreshToken) {
+//       return {
+//         tokenRefreshed: false,
+//       };
+//     }
+
+//     //Case 4: Access Token is invalid/expired- try to get a new one using refresh token
+//     // This is the only case we need to call the API
+
+//     // Now we know: accessToken is invalid/missing AND refreshToken exists
+//     // Safe to call the API
+//     let accessTokenObject: null | any = null;
+//     let refreshTokenObject: null | any = null;
+
+//     // API Call - serverFetch will skip getNewAccessToken for /auth/refresh-token endpoint
+//     const response = await serverFetch.post("/auth/refresh-token", {
+//       headers: {
+//         Cookie: `refreshToken=${refreshToken}`,
+//       },
+//     });
+
+//     const result = await response.json();
+//     if (!response.ok || !result.success) {
+//       throw new Error(result.message || "Login failed");
+//     }
+//     const setCookieHeaders = response.headers.getSetCookie();
+
+//     if (setCookieHeaders && setCookieHeaders.length > 0) {
+//       setCookieHeaders.forEach((cookie: string) => {
+//         const parsedCookie = parse(cookie);
+
+//         if (parsedCookie["accessToken"]) {
+//           accessTokenObject = parsedCookie;
+//         }
+//         if (parsedCookie["refreshToken"]) {
+//           refreshTokenObject = parsedCookie;
+//         }
+//       });
+//     } else {
+//       throw new Error("No Set-Cookie header found");
+//     }
+
+//     if (!accessTokenObject) {
+//       throw new Error("Tokens not found in cookies");
+//     }
+
+//     if (!refreshTokenObject) {
+//       throw new Error("Tokens not found in cookies");
+//     }
+
+//     await deleteCookie("accessToken");
+//     await setCookie("accessToken", accessTokenObject.accessToken, {
+//       secure: true,
+//       httpOnly: true,
+//       maxAge: parseInt(accessTokenObject["Max-Age"]) || 1000 * 60 * 60,
+//       path: accessTokenObject.Path || "/",
+//       sameSite: accessTokenObject["SameSite"] || "none",
+//     });
+
+//     await deleteCookie("refreshToken");
+//     await setCookie("refreshToken", refreshTokenObject.refreshToken, {
+//       secure: true,
+//       httpOnly: true,
+//       maxAge:
+//         parseInt(refreshTokenObject["Max-Age"]) || 1000 * 60 * 60 * 24 * 90,
+//       path: refreshTokenObject.Path || "/",
+//       sameSite: refreshTokenObject["SameSite"] || "none",
+//     });
+
+//     if (!result.success) {
+//       throw new Error(result.message || "Token refresh failed");
+//     }
+
+//     return {
+//       tokenRefreshed: true,
+//       success: true,
+//       message: "Token refreshed successfully",
+//     };
+//   } catch (error: any) {
+//     return {
+//       tokenRefreshed: false,
+//       success: false,
+//       refreshFailed: true,
+//       message: error?.message || "Something went wrong",
+//     };
+//   }
+// }
+
 export async function getNewAccessToken() {
   try {
     const accessToken = await getCookie("accessToken");
     const refreshToken = await getCookie("refreshToken");
 
-    //Case 1: Both tokens are missing - user is logged out
+    // Case 1: দুটোই নেই — logged out
     if (!accessToken && !refreshToken) {
-      return {
-        tokenRefreshed: false,
-      };
+      return { tokenRefreshed: false };
     }
 
-    // Case 2 : Access Token exist- and need to verify
-    if (accessToken) {
-      const verifiedToken = await verifyAccessToken(accessToken);
-
-      if (verifiedToken.success) {
-        return {
-          tokenRefreshed: false,
-        };
-      }
-    }
-
-    //Case 3 : refresh Token is missing- user is logged out
+    // Case 2: refresh token নেই — logout
     if (!refreshToken) {
-      return {
-        tokenRefreshed: false,
-      };
+      return { tokenRefreshed: false };
     }
 
-    //Case 4: Access Token is invalid/expired- try to get a new one using refresh token
-    // This is the only case we need to call the API
+    // ✅ Case 2 (পুরনো) সরিয়ে দিলাম — JWT locally verify করা যাবে না
+    // কারণ tokenVersion mismatch JWT এ ধরা যায় না
+    // সরাসরি refresh token দিয়ে নতুন token নেওয়ার চেষ্টা করো
 
-    // Now we know: accessToken is invalid/missing AND refreshToken exists
-    // Safe to call the API
     let accessTokenObject: null | any = null;
     let refreshTokenObject: null | any = null;
 
-    // API Call - serverFetch will skip getNewAccessToken for /auth/refresh-token endpoint
     const response = await serverFetch.post("/auth/refresh-token", {
       headers: {
         Cookie: `refreshToken=${refreshToken}`,
@@ -94,31 +188,31 @@ export async function getNewAccessToken() {
     });
 
     const result = await response.json();
+
+    // ✅ backend 401 দিলে — tokenVersion mismatch — refreshFailed
     if (!response.ok || !result.success) {
-      throw new Error(result.message || "Login failed");
+      await deleteCookie("accessToken");
+      await deleteCookie("refreshToken");
+      return {
+        tokenRefreshed: false,
+        refreshFailed: true,
+        message: result.message || "Session expired",
+      };
     }
+
     const setCookieHeaders = response.headers.getSetCookie();
 
     if (setCookieHeaders && setCookieHeaders.length > 0) {
       setCookieHeaders.forEach((cookie: string) => {
         const parsedCookie = parse(cookie);
-
-        if (parsedCookie["accessToken"]) {
-          accessTokenObject = parsedCookie;
-        }
-        if (parsedCookie["refreshToken"]) {
-          refreshTokenObject = parsedCookie;
-        }
+        if (parsedCookie["accessToken"]) accessTokenObject = parsedCookie;
+        if (parsedCookie["refreshToken"]) refreshTokenObject = parsedCookie;
       });
     } else {
       throw new Error("No Set-Cookie header found");
     }
 
-    if (!accessTokenObject) {
-      throw new Error("Tokens not found in cookies");
-    }
-
-    if (!refreshTokenObject) {
+    if (!accessTokenObject || !refreshTokenObject) {
       throw new Error("Tokens not found in cookies");
     }
 
@@ -128,6 +222,7 @@ export async function getNewAccessToken() {
       httpOnly: true,
       maxAge: parseInt(accessTokenObject["Max-Age"]) || 1000 * 60 * 60,
       path: accessTokenObject.Path || "/",
+      // sameSite: "lax",
       sameSite: accessTokenObject["SameSite"] || "none",
     });
 
@@ -138,12 +233,9 @@ export async function getNewAccessToken() {
       maxAge:
         parseInt(refreshTokenObject["Max-Age"]) || 1000 * 60 * 60 * 24 * 90,
       path: refreshTokenObject.Path || "/",
+      // sameSite: "lax",
       sameSite: refreshTokenObject["SameSite"] || "none",
     });
-
-    if (!result.success) {
-      throw new Error(result.message || "Token refresh failed");
-    }
 
     return {
       tokenRefreshed: true,
@@ -151,9 +243,10 @@ export async function getNewAccessToken() {
       message: "Token refreshed successfully",
     };
   } catch (error: any) {
+    await deleteCookie("accessToken");
+    await deleteCookie("refreshToken");
     return {
       tokenRefreshed: false,
-      success: false,
       refreshFailed: true,
       message: error?.message || "Something went wrong",
     };

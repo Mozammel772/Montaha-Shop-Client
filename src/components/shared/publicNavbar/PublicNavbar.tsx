@@ -10,28 +10,26 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 
-import { Heart, Search, ShoppingBag, User } from "lucide-react";
+import { Heart, Search, ShoppingBag, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import logo from "@/assets/icons/theme-logo.png";
 import { navbarCategoryData } from "@/lib/navbarData";
-
 import { getUserInfo } from "@/services/auth/getUserInfo";
 
 import dynamic from "next/dynamic";
+import CartDrawer from "../CartDrawer";
 import MobileBottomNav from "./MobileBottomNav";
 import MobileTopNavbar from "./MobileTopNavbar";
 
 const MobileMenuDrawer = dynamic(() => import("./MobileMenuDrawer"), {
   ssr: false,
 });
-
 const AuthDropdown = dynamic(() => import("./AuthDropdown"), {
   ssr: false,
 });
-
 const UserRoleBaseDropdown = dynamic(() => import("./UserRoleBaseDropdown"), {
   ssr: false,
 });
@@ -40,79 +38,114 @@ export default function PublicNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] =
     useState<keyof typeof navbarCategoryData>("men");
-
   const active = navbarCategoryData[activeTab];
 
   const [showAuth, setShowAuth] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  // DevTools থেকে cookie delete করলে tab focus এ recheck
-  useEffect(() => {
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === "visible") {
-        const data = await getUserInfo();
-        setUser(data || null);
-      }
-    };
+  const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
+  // ✅ isFetching ref — একসাথে multiple fetch আটকাবে
+  const isFetching = useRef(false);
+
+  // const fetchUser = async () => {
+  //   if (isFetching.current) return; // ইতিমধ্যে fetch চললে নতুন call skip
+  //   isFetching.current = true;
+  //   try {
+  //     const data = await getUserInfo();
+  //     setUser(data || null);
+  //   } catch {
+  //     setUser(null);
+  //   } finally {
+  //     isFetching.current = false;
+  //   }
+  // };
+
+  const fetchUser = async () => {
+    if (isFetching.current) return;
+    isFetching.current = true;
+    try {
+      const data = await getUserInfo();
+      // ✅ "UNAUTHORIZED" হলে null দেখাবে
+      setUser(data && data !== "UNAUTHORIZED" ? data : null);
+    } catch {
+      setUser(null);
+    } finally {
+      isFetching.current = false;
+    }
+  };
+
+  // ✅ শুধু mount এ একবার fetch
   useEffect(() => {
     const init = async () => {
-      try {
-        let data = await getUserInfo();
-
-        if (!data) {
-          await new Promise((r) => setTimeout(r, 300));
-          data = await getUserInfo();
-        }
-
-        if (!data) {
-          await new Promise((r) => setTimeout(r, 500));
-          data = await getUserInfo();
-        }
-
-        setUser(data || null);
-      } catch {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
+      setLoading(true);
+      await fetchUser();
+      setLoading(false);
     };
     init();
   }, []);
 
+  // ✅ login/logout event এ fetch — এটা ঠিকই আছে
   useEffect(() => {
-    const handler = async () => {
-      try {
-        let data = await getUserInfo();
-
-        if (!data) {
-          await new Promise((r) => setTimeout(r, 300));
-          data = await getUserInfo();
-        }
-
-        setUser(data || null);
-      } catch {
-        setUser(null);
-      }
-    };
-
+    const handler = () => fetchUser();
     window.addEventListener("userChanged", handler);
     return () => window.removeEventListener("userChanged", handler);
   }, []);
+
+  // ✅ visibilitychange — debounce দিয়ে বারবার call আটকাও
+  // useEffect(() => {
+  //   let timeout: ReturnType<typeof setTimeout>;
+  //   const handleVisibilityChange = () => {
+  //     if (document.visibilityState === "visible") {
+  //       clearTimeout(timeout);
+  //       // tab switch এ 500ms debounce — rapid tab switch এ একটাই call যাবে
+  //       timeout = setTimeout(() => fetchUser(), 500);
+  //     }
+  //   };
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   return () => {
+  //     clearTimeout(timeout);
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //   };
+  // }, []);
+
+  // ✅ scroll — শুধু UI state, কোনো fetch নেই
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // ✅ search open এ focus
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus();
+  }, [searchOpen]);
+
+  // ❌ console.log সরানো হয়েছে — প্রতি render এ fire হতো
+
   return (
     <>
-      <header className="w-full bg-[var(--background)] shadow-sm hidden sm:block">
-        <div className="max-w-[1600px] mx-auto px-2 h-18 flex items-center gap-5">
+      {/* FIXED NAVBAR */}
+      <header
+        className={`
+          fixed top-0 left-0 right-0 z-50 hidden sm:block
+          transition-all duration-300
+          ${
+            scrolled
+              ? "bg-white/95 backdrop-blur-md shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
+              : "bg-white shadow-sm"
+          }
+        `}
+      >
+        <div className="max-w-[1400px] mx-auto px-2 h-[72px] flex items-center gap-5">
           {/* LOGO */}
-          <Link href="/">
+          <Link href="/" className="shrink-0">
             <Image src={logo} alt="ShopKing" width={120} height={40} />
           </Link>
 
-          {/* MENU */}
           {/* MENU */}
           <div className="flex-2 flex justify-end">
             <NavigationMenu>
@@ -128,7 +161,7 @@ export default function PublicNavbar() {
 
                   <NavigationMenuContent>
                     <div className="w-[750px]">
-                      {/* TABS — উপরে */}
+                      {/* TABS */}
                       <div className="flex border-b px-6">
                         {Object.keys(navbarCategoryData).map((tab) => (
                           <button
@@ -149,9 +182,8 @@ export default function PublicNavbar() {
                         ))}
                       </div>
 
-                      {/* CONTENT — image + columns */}
+                      {/* CONTENT */}
                       <div className="flex gap-6 p-6">
-                        {/* IMAGE */}
                         <div className="w-[180px] shrink-0">
                           <Image
                             src={active.image}
@@ -163,17 +195,13 @@ export default function PublicNavbar() {
                           />
                         </div>
 
-                        {/* COLUMNS */}
                         <div className="flex gap-10 flex-1">
                           {Object.entries(active.columns).map(
                             ([columnName, items]) => (
                               <div key={columnName} className="flex flex-col">
-                                {/* Column title */}
                                 <p className="text-sm font-semibold text-gray-800 mb-3">
                                   {columnName}
                                 </p>
-
-                                {/* Items */}
                                 <ul className="flex flex-col gap-2">
                                   {items.map((item) => (
                                     <li key={item.name}>
@@ -206,12 +234,27 @@ export default function PublicNavbar() {
 
           {/* SEARCH */}
           <div className="flex-1 flex justify-end">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-2.5 h-4 w-4" />
+            <div className="relative flex items-center w-full max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
+                ref={searchRef}
                 placeholder="Search products..."
-                className="w-full pl-9 py-2 border rounded-full"
+                onFocus={() => setSearchOpen(true)}
+                onBlur={() => setSearchOpen(false)}
+                className="
+                  w-full pl-9 pr-9 py-2 text-sm
+                  bg-gray-50 border border-gray-200 rounded-full
+                  outline-none
+                  focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100
+                  transition-all duration-200
+                "
               />
+              {searchOpen && (
+                <X
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-600"
+                  onMouseDown={() => setSearchOpen(false)}
+                />
+              )}
             </div>
           </div>
 
@@ -221,13 +264,11 @@ export default function PublicNavbar() {
               <Heart />
             </Link>
 
-            <Link href="/cart" aria-label="Cart">
+            <button onClick={() => setCartOpen(true)} aria-label="Cart">
               <ShoppingBag />
-            </Link>
+            </button>
 
-            {/* USER section */}
             {loading ? (
-              // ✅ loading এর সময় shimmer দেখাও — user icon flash করবে না
               <div className="h-9 w-9 rounded-full bg-gray-200 animate-pulse" />
             ) : user ? (
               <UserRoleBaseDropdown user={user} />
@@ -240,7 +281,6 @@ export default function PublicNavbar() {
                 <div className="h-9 w-9 border flex items-center justify-center rounded-full cursor-pointer">
                   <User />
                 </div>
-
                 {showAuth && (
                   <AuthDropdown onClose={() => setShowAuth(false)} />
                 )}
@@ -249,6 +289,12 @@ export default function PublicNavbar() {
           </div>
         </div>
       </header>
+
+      {/* spacer */}
+      <div className="hidden sm:block h-[72px]" />
+
+      {/* CART DRAWER */}
+      <CartDrawer open={cartOpen} setOpen={setCartOpen} />
 
       <MobileTopNavbar onMenuClick={() => setMenuOpen(true)} />
       <MobileMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />

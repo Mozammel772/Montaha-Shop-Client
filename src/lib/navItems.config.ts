@@ -10,7 +10,7 @@ export const getCommonNavItems = (role: UserRole): NavSection[] => {
         {
           title: "Home",
           href: "/",
-          icon: "Home", // ✅ String
+          icon: "Home",
           roles: ["USER", "MODERATOR", "ADMIN"],
         },
         {
@@ -33,7 +33,7 @@ export const getCommonNavItems = (role: UserRole): NavSection[] => {
         {
           title: "Change Password",
           href: "/change-password",
-          icon: "Settings", // ✅ String
+          icon: "Settings",
           roles: ["USER"],
         },
       ],
@@ -42,8 +42,6 @@ export const getCommonNavItems = (role: UserRole): NavSection[] => {
 };
 
 export const getModeratorNavItems = async (): Promise<NavSection[]> => {
-  // Fetch upcoming appointments count (only future appointments)
-
   return [
     {
       title: "USER Management",
@@ -51,20 +49,19 @@ export const getModeratorNavItems = async (): Promise<NavSection[]> => {
         {
           title: "Appointments",
           href: "/MODERATOR/dashboard/appointments",
-          icon: "Calendar", // ✅ String
-
+          icon: "Calendar",
           roles: ["MODERATOR"],
         },
         {
           title: "My Schedules",
           href: "/MODERATOR/dashboard/my-schedules",
-          icon: "Clock", // ✅ String
+          icon: "Clock",
           roles: ["MODERATOR"],
         },
         {
           title: "Prescriptions",
           href: "/MODERATOR/dashboard/prescriptions",
-          icon: "FileText", // ✅ String
+          icon: "FileText",
           roles: ["MODERATOR"],
         },
       ],
@@ -73,8 +70,6 @@ export const getModeratorNavItems = async (): Promise<NavSection[]> => {
 };
 
 export const getUSERNavItems = async (): Promise<NavSection[]> => {
-  // Fetch upcoming appointments count (only future appointments)
-
   return [
     {
       title: "Appointments",
@@ -82,14 +77,13 @@ export const getUSERNavItems = async (): Promise<NavSection[]> => {
         {
           title: "My Appointments",
           href: "/dashboard/my-appointments",
-          icon: "Calendar", // ✅ String
-
+          icon: "Calendar",
           roles: ["USER"],
         },
         {
           title: "Book Appointment",
           href: "/consultation",
-          icon: "ClipboardList", // ✅ String
+          icon: "ClipboardList",
           roles: ["USER"],
         },
       ],
@@ -100,13 +94,13 @@ export const getUSERNavItems = async (): Promise<NavSection[]> => {
         {
           title: "My Prescriptions",
           href: "/dashboard/my-prescriptions",
-          icon: "FileText", // ✅ String
+          icon: "FileText",
           roles: ["USER"],
         },
         {
           title: "Health Records",
           href: "/dashboard/health-records",
-          icon: "Activity", // ✅ String
+          icon: "Activity",
           roles: ["USER"],
         },
       ],
@@ -114,6 +108,7 @@ export const getUSERNavItems = async (): Promise<NavSection[]> => {
   ];
 };
 
+// ─── Admin nav — with dropdowns ────────────────────────────────────────────
 export const adminNavItems: NavSection[] = [
   {
     title: "User Management",
@@ -121,20 +116,41 @@ export const adminNavItems: NavSection[] = [
       {
         title: "Admins",
         href: "/admin/dashboard/admins-management",
-        icon: "Shield", // ✅ String
+        icon: "Shield",
         roles: ["ADMIN"],
       },
       {
         title: "MODERATORs",
         href: "/admin/dashboard/MODERATORs-management",
-        icon: "Stethoscope", // ✅ String
+        icon: "Stethoscope",
         roles: ["ADMIN"],
       },
       {
+        // ✅ Dropdown example — "USERs" has sub-items
         title: "USERs",
-        href: "/admin/dashboard/USERs-management",
-        icon: "Users", // ✅ String
+        href: "/admin/dashboard/users-management",
+        icon: "Users",
         roles: ["ADMIN"],
+        children: [
+          {
+            title: "All Users",
+            href: "/admin/dashboard/all-users-management",
+            icon: "Users",
+            roles: ["ADMIN"],
+          },
+          {
+            title: "Banned Users",
+            href: "/admin/dashboard/USERs-management/banned",
+            icon: "UserX",
+            roles: ["ADMIN"],
+          },
+          {
+            title: "New Registrations",
+            href: "/admin/dashboard/USERs-management/new",
+            icon: "UserPlus",
+            roles: ["ADMIN"],
+          },
+        ],
       },
     ],
   },
@@ -142,21 +158,42 @@ export const adminNavItems: NavSection[] = [
     title: "Hospital Management",
     items: [
       {
+        // ✅ Dropdown example — "Appointments" has sub-items
         title: "Appointments",
         href: "/admin/dashboard/appointments-management",
-        icon: "Calendar", // ✅ String
+        icon: "Calendar",
         roles: ["ADMIN"],
+        children: [
+          {
+            title: "All Appointments",
+            href: "/admin/dashboard/appointments-management",
+            icon: "CalendarDays",
+            roles: ["ADMIN"],
+          },
+          {
+            title: "Pending",
+            href: "/admin/dashboard/appointments-management/pending",
+            icon: "Clock",
+            roles: ["ADMIN"],
+          },
+          {
+            title: "Completed",
+            href: "/admin/dashboard/appointments-management/completed",
+            icon: "CheckCircle",
+            roles: ["ADMIN"],
+          },
+        ],
       },
       {
         title: "Schedules",
         href: "/admin/dashboard/schedules-management",
-        icon: "Clock", // ✅ String
+        icon: "Clock",
         roles: ["ADMIN"],
       },
       {
         title: "Specialities",
         href: "/admin/dashboard/specialities-management",
-        icon: "Hospital", // ✅ String
+        icon: "Hospital",
         roles: ["ADMIN"],
       },
     ],
@@ -172,17 +209,9 @@ export const getNavItemsByRole = async (
     case "ADMIN":
       return [...commonNavItems, ...adminNavItems];
     case "MODERATOR":
-      return [
-        ...commonNavItems,
-        // ...MODERATORNavItems
-        ...(await getModeratorNavItems()),
-      ];
+      return [...commonNavItems, ...(await getModeratorNavItems())];
     case "USER":
-      return [
-        ...commonNavItems,
-        // ...USERNavItems
-        ...(await getUSERNavItems()),
-      ];
+      return [...commonNavItems, ...(await getUSERNavItems())];
     default:
       return [];
   }

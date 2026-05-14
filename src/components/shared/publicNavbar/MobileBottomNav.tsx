@@ -2,96 +2,340 @@
 
 import { useCart } from "@/hooks/useCart";
 import { navbarCategoryData } from "@/lib/navbarData";
-import { Grid, Heart, Home, ShoppingBag, User } from "lucide-react";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { navbarRoleBaseMenu } from "@/lib/navbarUserRoleBaseInfo";
+import { getUserInfo } from "@/services/auth/getUserInfo";
+import { Grid, Heart, Home, ShoppingBag, User, X } from "lucide-react";
 
-const CartDrawer = dynamic(() => import("../CartDrawer"), {
-  ssr: false,
-});
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import LogoutButton from "../LogOutButton";
+
+const CartDrawer = dynamic(() => import("../CartDrawer"), { ssr: false });
 const MobileCategoryDrawer = dynamic(() => import("./MobileCategoryDrawer"), {
   ssr: false,
 });
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+const ROLE_CONFIG = {
+  SUPER_ADMIN: { label: "Super Admin", color: "bg-purple-100 text-purple-700" },
+  ADMIN: { label: "Admin", color: "bg-blue-100 text-blue-700" },
+  MODERATOR: { label: "Moderator", color: "bg-amber-100 text-amber-700" },
+  USER: { label: "Active User", color: "bg-emerald-100 text-emerald-700" },
+} as const;
+
 export default function MobileBottomNav() {
   const [openCategory, setOpenCategory] = useState(false);
   const [openCart, setOpenCart] = useState(false);
+  const [openProfile, setOpenProfile] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const { cartItems } = useCart();
+  const pathname = usePathname();
+
+  /* ── Fetch user ── */
+  const fetchUser = async () => {
+    try {
+      const data = await getUserInfo();
+      setUser(data || null);
+    } catch {
+      setUser(null);
+    }
+  };
 
   useEffect(() => {
-    document.body.style.overflow = openCategory || openCart ? "hidden" : "auto";
+    const init = async () => {
+      try {
+        setLoading(true);
+        await fetchUser();
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
+  }, []);
 
+  useEffect(() => {
+    const handler = () => fetchUser();
+    window.addEventListener("userChanged", handler);
+    return () => window.removeEventListener("userChanged", handler);
+  }, []);
+
+  /* ── Body scroll lock ── */
+  useEffect(() => {
+    const anyOpen = openCategory || openCart || openProfile;
+    document.body.style.overflow = anyOpen ? "hidden" : "auto";
     return () => {
       document.body.style.overflow = "auto";
     };
-  }, [openCategory, openCart]);
+  }, [openCategory, openCart, openProfile]);
+
+  /* ── Helpers ── */
+  const isActive = (href: string) => pathname === href;
+
+  const avatarFallback = user?.name
+    ? user.name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "U";
+
+  const role = (user?.role as keyof typeof ROLE_CONFIG) || "USER";
+  const roleConfig = ROLE_CONFIG[role] ?? ROLE_CONFIG.USER;
+  const roleMenus = navbarRoleBaseMenu[role] || [];
 
   return (
     <>
-      {/* Bottom Navbar */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-background border-t sm:hidden shadow-md">
-        <div className="relative grid grid-cols-5 items-center h-16 px-2">
-          {/* Home */}
+      {/* ========================= BOTTOM NAV ========================= */}
+      <nav className="fixed bottom-0 inset-x-0 z-40 sm:hidden transition-transform duration-200">
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-xl border-t border-gray-100/80 shadow-[0_-8px_32px_rgba(0,0,0,0.08)]" />
+
+        <div className="relative grid grid-cols-5 items-end h-[68px] px-1 pb-2">
+          {/* HOME */}
           <Link
             href="/"
-            className="flex flex-col items-center justify-center text-orange-500 text-xs font-medium"
+            className="flex flex-col items-center justify-center gap-1 pt-2 group"
           >
-            <Home size={20} />
-            <span className="mt-1">Home</span>
+            <div
+              className={`flex items-center justify-center w-10 h-7 rounded-2xl transition-all duration-300 ${isActive("/") ? "bg-orange-500 shadow-[0_4px_12px_rgba(249,115,22,0.4)]" : ""}`}
+            >
+              <Home
+                size={18}
+                className={`transition-colors duration-200 ${isActive("/") ? "text-white" : "text-gray-400 group-hover:text-orange-500"}`}
+              />
+            </div>
+            <span
+              className={`text-[10px] font-semibold tracking-wide transition-colors duration-200 ${isActive("/") ? "text-orange-500" : "text-gray-400 group-hover:text-orange-500"}`}
+            >
+              Home
+            </span>
           </Link>
 
-          {/* Categories */}
+          {/* CATEGORY */}
           <button
             onClick={() => setOpenCategory(true)}
-            className="flex flex-col items-center justify-center text-muted-foreground text-xs font-medium"
+            className="flex flex-col items-center justify-center gap-1 pt-2 group"
           >
-            <Grid size={20} />
-            <span className="mt-1">Categories</span>
+            <div className="flex items-center justify-center w-10 h-7 rounded-2xl transition-all duration-300">
+              <Grid
+                size={18}
+                className="text-gray-400 group-hover:text-orange-500 transition-colors duration-200"
+              />
+            </div>
+            <span className="text-[10px] font-semibold tracking-wide text-gray-400 group-hover:text-orange-500 transition-colors duration-200">
+              Category
+            </span>
           </button>
 
-          {/* Center Empty */}
-          <div></div>
+          {/* CART */}
+          <div className="flex flex-col items-center justify-end pb-1">
+            <button
+              onClick={() => setOpenCart(true)}
+              className="relative -mt-6 group"
+            >
+              <div className="absolute inset-0 rounded-full bg-orange-400/30 scale-110 blur-md group-active:scale-100 transition-all duration-300" />
+              <div className="relative h-[52px] w-[52px] rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-[0_8px_24px_rgba(249,115,22,0.45)] group-active:scale-95 transition-all duration-200">
+                <ShoppingBag className="text-white" size={22} strokeWidth={2} />
+                {(cartItems?.length ?? 0) > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-[#0f3ea9] text-white text-[9px] font-bold flex items-center justify-center shadow-md border-2 border-white">
+                    {cartItems.length > 99 ? "99+" : cartItems.length}
+                  </span>
+                )}
+              </div>
+            </button>
+          </div>
 
-          {/* Wishlist */}
+          {/* WISHLIST */}
           <Link
             href="/wishlist"
-            className="flex flex-col items-center justify-center text-muted-foreground text-xs font-medium"
+            className="flex flex-col items-center justify-center gap-1 pt-2 group"
           >
-            <Heart size={20} />
-            <span className="mt-1">Wishlist</span>
-          </Link>
-
-          {/* Login */}
-          <Link
-            href="/login"
-            className="flex flex-col items-center justify-center text-muted-foreground text-xs font-medium"
-          >
-            <User size={20} />
-            <span className="mt-1">Login</span>
-          </Link>
-
-          {/* Floating Cart Button */}
-          <button
-            onClick={() => setOpenCart(true)}
-            className="absolute left-1/2 -translate-x-1/2 -top-7"
-          >
-            <div className="relative h-14 w-14 rounded-full bg-orange-500 flex items-center justify-center shadow-xl transition-all duration-300 active:scale-95">
-              <ShoppingBag className="text-white" size={22} />
-
-              <span className="absolute -top-1 -right-1 min-w-[22px] h-[22px] px-1 rounded-full bg-[#0f3ea9] text-white text-[10px] font-bold flex items-center justify-center">
-                {cartItems?.length ?? 0}
-              </span>
+            <div
+              className={`flex items-center justify-center w-10 h-7 rounded-2xl transition-all duration-300 ${isActive("/wishlist") ? "bg-orange-500 shadow-[0_4px_12px_rgba(249,115,22,0.4)]" : ""}`}
+            >
+              <Heart
+                size={18}
+                className={`transition-colors duration-200 ${isActive("/wishlist") ? "text-white" : "text-gray-400 group-hover:text-orange-500"}`}
+              />
             </div>
-          </button>
+            <span
+              className={`text-[10px] font-semibold tracking-wide transition-colors duration-200 ${isActive("/wishlist") ? "text-orange-500" : "text-gray-400 group-hover:text-orange-500"}`}
+            >
+              Wishlist
+            </span>
+          </Link>
+
+          {/* PROFILE / LOGIN */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center gap-1 pt-2">
+              <div className="w-7 h-7 rounded-full bg-gray-200 animate-pulse" />
+            </div>
+          ) : user ? (
+            <button
+              onClick={() => setOpenProfile(true)}
+              className="flex flex-col items-center justify-center gap-1 pt-2 group"
+            >
+              <div className="w-10 h-7 flex items-center justify-center">
+                {user.profilePicture ? (
+                  <Image
+                    src={user.profilePicture}
+                    alt={user.name}
+                    width={28}
+                    height={28}
+                    sizes="60px"
+                    className="rounded-full object-cover border-2 border-orange-400"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-[10px] font-bold shadow">
+                    {avatarFallback}
+                  </div>
+                )}
+              </div>
+              <span className="text-[10px] font-semibold tracking-wide text-gray-400 group-hover:text-orange-500 transition-colors duration-200 max-w-[52px] truncate">
+                {user.name?.split(" ")[0]}
+              </span>
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="flex flex-col items-center justify-center gap-1 pt-2 group"
+            >
+              <div
+                className={`flex items-center justify-center w-10 h-7 rounded-2xl transition-all duration-300 ${isActive("/login") ? "bg-orange-500 shadow-[0_4px_12px_rgba(249,115,22,0.4)]" : ""}`}
+              >
+                <User
+                  size={18}
+                  className={`transition-colors duration-200 ${isActive("/login") ? "text-white" : "text-gray-400 group-hover:text-orange-500"}`}
+                />
+              </div>
+              <span
+                className={`text-[10px] font-semibold tracking-wide transition-colors duration-200 ${isActive("/login") ? "text-orange-500" : "text-gray-400 group-hover:text-orange-500"}`}
+              >
+                Login
+              </span>
+            </Link>
+          )}
         </div>
       </nav>
 
-      {/* CART DRAWER */}
+      {/* ========================= PROFILE DRAWER ========================= */}
+
+      {/* Overlay */}
+      <div
+        onClick={() => setOpenProfile(false)}
+        className={`fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[9998] transition-all duration-300 sm:hidden ${openProfile ? "opacity-100 visible" : "opacity-0 invisible"}`}
+      />
+
+      {/* Left Drawer */}
+      <div
+        className={`fixed top-0 left-0 z-[9999] h-screen w-[78%] max-w-[300px] bg-white flex flex-col transition-all duration-300 sm:hidden shadow-[0_0_40px_rgba(0,0,0,0.15)] ${openProfile ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        {/* ── Profile Header ── */}
+        <div className="relative overflow-hidden border-b border-gray-100 bg-gradient-to-br from-amber-50 via-white to-yellow-50 px-5 py-5">
+          {/* Decorative blobs */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-200/20"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-6 bottom-0 h-20 w-20 rounded-full bg-yellow-100/40"
+          />
+
+          {/* Close button */}
+          <button
+            onClick={() => setOpenProfile(false)}
+            className="absolute top-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200"
+          >
+            <X size={16} />
+          </button>
+
+          {/* Avatar + Info */}
+          <div className="relative flex items-center gap-4 pt-1">
+            {/* Avatar */}
+            <div className="relative flex-shrink-0">
+              {user?.profilePicture ? (
+                <Image
+                  src={user.profilePicture}
+                  alt={user?.name || "User"}
+                  width={64}
+                  height={64}
+                  sizes="80px"
+                  className="h-16 w-16 rounded-full object-cover border-2 border-white shadow-md"
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xl font-bold shadow-md border-2 border-white">
+                  {avatarFallback}
+                </div>
+              )}
+              {/* Online dot */}
+              <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
+            </div>
+
+            {/* Info */}
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-[15px] font-bold text-gray-900">
+                {user?.name || "User"}
+              </h2>
+              <p className="truncate text-xs text-gray-500 mt-0.5">
+                {user?.phone || ""}
+              </p>
+              <span
+                className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${roleConfig.color}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-1.5 w-1.5 rounded-full bg-current"
+                />
+                {roleConfig.label}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Menu Items ── */}
+        <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5 bg-white">
+          {roleMenus.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpenProfile(false)}
+                className={`flex items-center gap-3 px-2 py-1.5 rounded-xl transition-all duration-200 ${
+                  active
+                    ? "bg-amber-50 text-amber-700"
+                    : "text-gray-700 hover:bg-amber-50 hover:text-amber-700"
+                }`}
+              >
+                <div
+                  className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-xl transition-colors ${active ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"}`}
+                >
+                  <Icon size={18} />
+                </div>
+                <span className="text-sm font-medium">{item.name}</span>
+              </Link>
+            );
+          })}
+
+          {/* Logout */}
+          <div className="pt-2 mt-2 border-t border-gray-100">
+            <LogoutButton />
+          </div>
+        </div>
+      </div>
+
+      {/* ========================= CART DRAWER ========================= */}
       <CartDrawer open={openCart} setOpen={setOpenCart} />
 
-      {/* CATEGORY DRAWER */}
+      {/* ========================= CATEGORY DRAWER ========================= */}
       <MobileCategoryDrawer
         open={openCategory}
         onClose={() => setOpenCategory(false)}

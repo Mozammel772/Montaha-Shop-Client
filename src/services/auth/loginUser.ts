@@ -69,20 +69,24 @@ export const loginUser = async (
 
     /* ================= SAVE ACCESS TOKEN ================= */
     await setCookie("accessToken", accessTokenObject.accessToken, {
-      secure: true,
+      secure: false,
       httpOnly: true,
       maxAge: parseInt(accessTokenObject["Max-Age"]) || 60 * 60,
-      path: accessTokenObject.Path || "/",
-      sameSite: accessTokenObject["SameSite"] || "none",
+      // path: accessTokenObject.Path || "/",
+      // sameSite: accessTokenObject["SameSite"] || "none",
+      path: "/",
+      sameSite: "lax",
     });
 
     /* ================= SAVE REFRESH TOKEN ================= */
     await setCookie("refreshToken", refreshTokenObject.refreshToken, {
-      secure: true,
+      secure: false,
       httpOnly: true,
       maxAge: parseInt(refreshTokenObject["Max-Age"]) || 60 * 60 * 24 * 90,
-      path: refreshTokenObject.Path || "/",
-      sameSite: refreshTokenObject["SameSite"] || "none",
+      // path: refreshTokenObject.Path || "/",
+      // sameSite: refreshTokenObject["SameSite"] || "none",
+      path: "/",
+      sameSite: "lax",
     });
 
     return {
