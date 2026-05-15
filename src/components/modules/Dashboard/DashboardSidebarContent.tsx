@@ -282,7 +282,7 @@ const DashboardSidebarContent = ({
                   <p className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                     {section.title}
                   </p>
-                  <div className="h-px w-full bg-gradient-to-r from-gray-100 to-transparent" />
+                  <div className="h-px w-full bg-gradient-to-r from-orange-500 to-transparent" />
                 </div>
               )}
               <div className="space-y-0.5">

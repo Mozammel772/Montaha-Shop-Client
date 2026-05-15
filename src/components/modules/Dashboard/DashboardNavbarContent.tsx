@@ -43,7 +43,7 @@ const DashboardNavbarContent = ({
               size="icon"
               className="h-9 w-9 rounded-xl border-[#e5e0d8] bg-white hover:bg-amber-50 hover:border-amber-200 transition-colors"
             >
-              <Menu className="h-4 w-4 text-gray-500" />
+              <Menu className="h-6 w-6 cursor-pointer" />
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
@@ -51,6 +51,7 @@ const DashboardNavbarContent = ({
               userInfo={userInfo}
               navItems={navItems || []}
               dashboardHome={dashboardHome || ""}
+              onClose={() => setIsOpen(false)}
             />
           </SheetContent>
         </Sheet>

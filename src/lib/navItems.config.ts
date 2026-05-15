@@ -6,35 +6,24 @@ export const getCommonNavItems = (role: UserRole): NavSection[] => {
 
   return [
     {
+      title: "Dashboard Management",
+      items: [
+        {
+          title: "Dashboard",
+          href: defaultDashboard,
+          icon: "LayoutDashboard",
+          roles: ["USER", "MODERATOR", "ADMIN", "SUPER_ADMIN"],
+        },
+      ],
+    },
+    {
+      title: "Go To Home",
       items: [
         {
           title: "Home",
           href: "/",
           icon: "Home",
-          roles: ["USER", "MODERATOR", "ADMIN"],
-        },
-        {
-          title: "Dashboard",
-          href: defaultDashboard,
-          icon: "LayoutDashboard",
-          roles: ["USER", "MODERATOR", "ADMIN"],
-        },
-        {
-          title: "My Profile",
-          href: `/my-profile`,
-          icon: "User",
-          roles: ["USER", "MODERATOR", "ADMIN"],
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      items: [
-        {
-          title: "Change Password",
-          href: "/change-password",
-          icon: "Settings",
-          roles: ["USER"],
+          roles: ["USER", "MODERATOR", "ADMIN", "SUPER_ADMIN"],
         },
       ],
     },
@@ -72,35 +61,18 @@ export const getModeratorNavItems = async (): Promise<NavSection[]> => {
 export const getUSERNavItems = async (): Promise<NavSection[]> => {
   return [
     {
-      title: "Appointments",
+      title: "Order Summery",
       items: [
         {
-          title: "My Appointments",
+          title: "My Order",
           href: "/dashboard/my-appointments",
           icon: "Calendar",
           roles: ["USER"],
         },
         {
-          title: "Book Appointment",
+          title: "Order Status",
           href: "/consultation",
           icon: "ClipboardList",
-          roles: ["USER"],
-        },
-      ],
-    },
-    {
-      title: "Medical Records",
-      items: [
-        {
-          title: "My Prescriptions",
-          href: "/dashboard/my-prescriptions",
-          icon: "FileText",
-          roles: ["USER"],
-        },
-        {
-          title: "Health Records",
-          href: "/dashboard/health-records",
-          icon: "Activity",
           roles: ["USER"],
         },
       ],
@@ -114,20 +86,7 @@ export const adminNavItems: NavSection[] = [
     title: "User Management",
     items: [
       {
-        title: "Admins",
-        href: "/admin/dashboard/admins-management",
-        icon: "Shield",
-        roles: ["ADMIN"],
-      },
-      {
-        title: "MODERATORs",
-        href: "/admin/dashboard/MODERATORs-management",
-        icon: "Stethoscope",
-        roles: ["ADMIN"],
-      },
-      {
-        // ✅ Dropdown example — "USERs" has sub-items
-        title: "USERs",
+        title: "Users",
         href: "/admin/dashboard/users-management",
         icon: "Users",
         roles: ["ADMIN"],
@@ -154,15 +113,15 @@ export const adminNavItems: NavSection[] = [
       },
     ],
   },
+
   {
-    title: "Hospital Management",
+    title: "Settings",
     items: [
       {
-        // ✅ Dropdown example — "Appointments" has sub-items
-        title: "Appointments",
+        title: "Settings",
         href: "/admin/dashboard/appointments-management",
-        icon: "Calendar",
-        roles: ["ADMIN"],
+        icon: "Settings",
+        roles: ["ADMIN", "SUPER_ADMIN"],
         children: [
           {
             title: "All Appointments",
@@ -184,17 +143,12 @@ export const adminNavItems: NavSection[] = [
           },
         ],
       },
+
       {
-        title: "Schedules",
-        href: "/admin/dashboard/schedules-management",
-        icon: "Clock",
-        roles: ["ADMIN"],
-      },
-      {
-        title: "Specialities",
+        title: "ToDay Order",
         href: "/admin/dashboard/specialities-management",
         icon: "Hospital",
-        roles: ["ADMIN"],
+        roles: ["ADMIN", "SUPER_ADMIN"],
       },
     ],
   },
@@ -206,6 +160,7 @@ export const getNavItemsByRole = async (
   const commonNavItems = getCommonNavItems(role);
 
   switch (role) {
+    case "SUPER_ADMIN":
     case "ADMIN":
       return [...commonNavItems, ...adminNavItems];
     case "MODERATOR":

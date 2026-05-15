@@ -395,7 +395,7 @@ export default function AllUserManage() {
         />
       )}
 
-      <div className="min-h-screen bg-slate-50  md:p-4">
+      <div>
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-slate-800">
