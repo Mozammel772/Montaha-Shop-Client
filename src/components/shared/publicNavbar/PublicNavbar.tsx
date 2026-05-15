@@ -51,26 +51,12 @@ export default function PublicNavbar() {
   // ✅ isFetching ref — একসাথে multiple fetch আটকাবে
   const isFetching = useRef(false);
 
-  // const fetchUser = async () => {
-  //   if (isFetching.current) return; // ইতিমধ্যে fetch চললে নতুন call skip
-  //   isFetching.current = true;
-  //   try {
-  //     const data = await getUserInfo();
-  //     setUser(data || null);
-  //   } catch {
-  //     setUser(null);
-  //   } finally {
-  //     isFetching.current = false;
-  //   }
-  // };
-
   const fetchUser = async () => {
-    if (isFetching.current) return;
+    if (isFetching.current) return; // ইতিমধ্যে fetch চললে নতুন call skip
     isFetching.current = true;
     try {
       const data = await getUserInfo();
-      // ✅ "UNAUTHORIZED" হলে null দেখাবে
-      setUser(data && data !== "UNAUTHORIZED" ? data : null);
+      setUser(data || null);
     } catch {
       setUser(null);
     } finally {

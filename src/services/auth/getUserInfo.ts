@@ -1,35 +1,203 @@
+// "use server";
+
+// import { serverFetch } from "@/lib/server-fetch";
+// import { UserInfo } from "@/types/user.interface";
+
+// // ✅ return type এ "UNAUTHORIZED" যোগ করো
+// export const getUserInfo = async (): Promise<
+//   UserInfo | null | "UNAUTHORIZED"
+// > => {
+//   try {
+//     const response = await serverFetch.get("/user/me", {
+//       cache: "no-store",
+//     });
+
+//     if (response.status === 401) {
+//       return "UNAUTHORIZED";
+//     }
+
+//     if (!response.ok) return null;
+
+//     const result = await response.json();
+//     if (!result.success) return null;
+
+//     return {
+//       id: result.data?.id,
+//       name: result.data?.name,
+//       profilePicture: result.data?.profilePicture,
+//       phone: result.data?.phone,
+//       email: result.data?.email,
+//       address: result.data?.address,
+//       gender: result.data?.gender,
+//       role: result.data?.userRole,
+//       status: result.data?.userStatus,
+//       createdAt: result.data?.createdAt,
+//       updatedAt: result.data?.updatedAt,
+//     };
+//   } catch {
+//     return null;
+//   }
+// };
+
+// "use server";
+
+// import { serverFetch } from "@/lib/server-fetch";
+// import { UserInfo } from "@/types/user.interface";
+
+// export const getUserInfo = async (): Promise<
+//   UserInfo | "UNAUTHORIZED" | null
+// > => {
+//   try {
+//     const response = await serverFetch.get("/user/me", {
+//       cache: "no-store",
+//     });
+
+//     // ✅ unauthorized
+//     if (response.status === 401) {
+//       return "UNAUTHORIZED";
+//     }
+
+//     if (!response.ok) {
+//       return null;
+//     }
+
+//     const result = await response.json();
+
+//     if (!result.success) {
+//       return null;
+//     }
+
+//     return {
+//       id: result.data?.id,
+//       name: result.data?.name,
+//       profilePicture: result.data?.profilePicture,
+//       phone: result.data?.phone,
+//       email: result.data?.email,
+//       address: result.data?.address,
+//       gender: result.data?.gender,
+//       role: result.data?.userRole,
+//       status: result.data?.userStatus,
+//       createdAt: result.data?.createdAt,
+//       updatedAt: result.data?.updatedAt,
+//     };
+//   } catch {
+//     return null;
+//   }
+// };
+
+// "use server";
+
+// import type { UserInfo } from "@/types/user.interface";
+// import { cookies } from "next/headers";
+// import { logoutUser } from "./logoutUser";
+
+// const BACKEND_API_URL =
+//   process.env.NEXT_PUBLIC_BASE_API_URL || "http://localhost:5000/api/v1";
+
+// export const getUserInfo = async (): Promise<
+//   UserInfo | "UNAUTHORIZED" | null
+// > => {
+//   try {
+//     const cookieStore = await cookies();
+//     const accessToken = cookieStore.get("accessToken")?.value;
+
+//     if (!accessToken) {
+//       return null;
+//     }
+
+//     const response = await fetch(`${BACKEND_API_URL}/user/me`, {
+//       method: "GET",
+//       cache: "no-store",
+//       headers: {
+//         Cookie: `accessToken=${accessToken}`,
+//       },
+//     });
+
+//     if (response.status === 401) {
+//       await logoutUser();
+
+//       return "UNAUTHORIZED";
+//     }
+
+//     if (!response.ok) {
+//       return null;
+//     }
+
+//     const result = await response.json();
+
+//     if (!result.success) return null;
+
+//     return {
+//       id: result.data?.id,
+//       name: result.data?.name,
+//       profilePicture: result.data?.profilePicture,
+//       phone: result.data?.phone,
+//       email: result.data?.email,
+//       address: result.data?.address,
+//       gender: result.data?.gender,
+//       role: result.data?.userRole,
+//       status: result.data?.userStatus,
+//       createdAt: result.data?.createdAt,
+//       updatedAt: result.data?.updatedAt,
+//     };
+//   } catch {
+//     return null;
+//   }
+// };
+
 "use server";
 
-import { serverFetch } from "@/lib/server-fetch";
-import { UserInfo } from "@/types/user.interface";
+import type { UserInfo } from "@/types/user.interface";
+import { cookies } from "next/headers";
+import { logoutUser } from "./logoutUser";
 
-// ✅ return type এ "UNAUTHORIZED" যোগ করো
-export const getUserInfo = async (): Promise<
-  UserInfo | null | "UNAUTHORIZED"
-> => {
+const BACKEND_API_URL =
+  process.env.NEXT_PUBLIC_BASE_API_URL || "http://localhost:5000/api/v1";
+
+export const getUserInfo = async (): Promise<UserInfo | null> => {
   try {
-    const response = await serverFetch.get("/user/me", {
-      cache: "no-store",
-    });
+    const cookieStore = await cookies();
 
-    if (response.status === 401) {
-      return "UNAUTHORIZED";
+    const accessToken = cookieStore.get("accessToken")?.value;
+
+    if (!accessToken) {
+      return null;
     }
 
-    if (!response.ok) return null;
+    const response = await fetch(`${BACKEND_API_URL}/user/me`, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        Cookie: `accessToken=${accessToken}`,
+      },
+    });
+
+    // ✅ unauthorized
+    if (response.status === 401) {
+      await logoutUser();
+
+      return null;
+    }
+
+    if (!response.ok) {
+      return null;
+    }
 
     const result = await response.json();
-    if (!result.success) return null;
+
+    if (!result.success) {
+      return null;
+    }
 
     return {
       id: result.data?.id,
-      name: result.data?.name || "Unknown User",
+      name: result.data?.name,
       profilePicture: result.data?.profilePicture,
-      phone: result.data?.phone || "",
-      email: result.data?.email || "",
-      address: result.data?.address || "",
-      gender: result.data?.gender || "",
-      role: result.data?.userRole || "USER",
+      phone: result.data?.phone,
+      email: result.data?.email,
+      address: result.data?.address,
+      gender: result.data?.gender,
+      role: result.data?.userRole,
       status: result.data?.userStatus,
       createdAt: result.data?.createdAt,
       updatedAt: result.data?.updatedAt,

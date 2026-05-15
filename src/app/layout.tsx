@@ -1,4 +1,3 @@
-import { AuthGuard } from "@/components/AuthGuard";
 import LoginSuccessToast from "@/components/shared/LoginSuccessToast";
 import Providers from "@/providers/Providers";
 import type { Metadata } from "next";
@@ -102,7 +101,7 @@ export default function RootLayout({
           shadow="0 0 10px #f97316"
         />
         <Providers>
-          <AuthGuard />
+          {/* <AuthGuard /> */}
           {children}
         </Providers>
 
