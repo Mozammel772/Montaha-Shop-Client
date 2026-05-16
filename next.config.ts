@@ -1,18 +1,15 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production";
+
 const nextConfig: NextConfig = {
-  // reactCompiler: true,
-
   allowedDevOrigins: ["10.64.253.134"],
-
-  // ✅ Production build optimize
   compress: true,
 
-  // ✅ Image optimization
   images: {
     formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
-    qualities: [75, 90],
+    minimumCacheTTL: 60 * 60 * 24 * 7,
+    qualities: [75, 90], // ✅ এটাই সঠিক Next.js 15+ এ
     remotePatterns: [
       {
         protocol: "https",
@@ -21,7 +18,6 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // ✅ Unused JS কমাও
   experimental: {
     optimizePackageImports: [
       "lucide-react",
@@ -31,7 +27,6 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // ✅ HTTP headers
   async headers() {
     return [
       {
@@ -44,13 +39,16 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
+          ...(isProd
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains; preload",
+                },
+              ]
+            : []),
         ],
       },
-      // ✅ Static files cache
       {
         source: "/(.*)\\.(ico|png|jpg|jpeg|svg|webp|avif|woff|woff2)",
         headers: [

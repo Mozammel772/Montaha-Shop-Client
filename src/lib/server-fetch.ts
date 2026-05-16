@@ -54,6 +54,7 @@
 //   ): Promise<Response> =>
 //     serverFetchHelper(endpoint, { ...options, method: "DELETE" }),
 // };
+
 import { getCookie } from "@/services/auth/tokenHandlers";
 
 const BACKEND_API_URL =

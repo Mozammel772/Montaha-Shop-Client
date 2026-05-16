@@ -124,9 +124,9 @@ export const adminNavItems: NavSection[] = [
         roles: ["ADMIN", "SUPER_ADMIN"],
         children: [
           {
-            title: "All Appointments",
-            href: "/admin/dashboard/appointments-management",
-            icon: "CalendarDays",
+            title: "Slider",
+            href: "/admin/dashboard/settings/slider",
+            icon: "Sliders",
             roles: ["ADMIN"],
           },
           {
